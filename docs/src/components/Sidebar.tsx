@@ -1,4 +1,3 @@
-// src/components/Sidebar.tsx (updated with Tailwind CSS and Progress link)
 "use client"
 
 import { motion, AnimatePresence } from "framer-motion"
@@ -18,6 +17,7 @@ import {
 } from "@heroicons/react/24/outline"
 import { useState } from "react"
 import { authService } from "../services/auth"
+import { ThemeToggle } from "./ThemeToggle"
 
 interface SidebarProps {
   isOpen: boolean
@@ -31,7 +31,7 @@ const navigation = [
   { name: "ATS Score", href: "/ats-score", icon: ChartBarIcon },
   { name: "Career Insights", href: "/career-insights", icon: AcademicCapIcon },
   { name: "Growth Planner", href: "/growth-planner", icon: AcademicCapIcon },
-  { name: "Progress", href: "/progress", icon: ArrowTrendingUpIcon }, // New Progress link
+  { name: "Progress", href: "/progress", icon: ArrowTrendingUpIcon },
   { name: "Cold Email", href: "/cold-email", icon: PaperClipIcon },
   { name: "Settings", href: "/settings", icon: Cog6ToothIcon },
 ]
@@ -65,9 +65,9 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
       {/* Mobile Menu Button */}
       <button
         onClick={() => setIsMobileMenuOpen(true)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-white/80 backdrop-blur-md shadow-md"
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-sidebar-background/80 backdrop-blur-md shadow-lg border border-sidebar-border"
       >
-        <Bars3Icon className="h-6 w-6 text-gray-900" />
+        <Bars3Icon className="h-6 w-6 text-sidebar-foreground" />
       </button>
 
       {/* Mobile Overlay */}
@@ -87,11 +87,11 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
       <motion.div
         variants={sidebarVariants}
         animate={isOpen ? "open" : "closed"}
-        className={`hidden lg:flex fixed left-0 top-0 h-screen bg-white/80 backdrop-blur-md shadow-md z-30 flex-col ${
+        className={`hidden lg:flex fixed left-0 top-0 h-screen bg-sidebar-background/95 backdrop-blur-md shadow-xl border-r border-sidebar-border z-30 flex-col ${
           isMobileMenuOpen ? "block" : "hidden lg:flex"
         }`}
       >
-        <div className="p-6">
+        <div className="p-6 border-b border-sidebar-border">
           <div className="flex items-center justify-between">
             <AnimatePresence>
               {isOpen && (
@@ -102,8 +102,13 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
                   exit="closed"
                   className="flex items-center space-x-3"
                 >
-                  <div className="w-8 h-8 bg-gradient-to-r from-indigo-600 to-purple-700 rounded-lg flex items-center justify-center shadow-md">
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-8 h-8 bg-gradient-to-r from-primary to-primary-light rounded-lg flex items-center justify-center shadow-lg">
+                    <svg
+                      className="w-4 h-4 text-primary-foreground"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -112,32 +117,36 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
                       />
                     </svg>
                   </div>
-                  <span className="font-bold text-gray-900">ResumeAI</span>
+                  <span className="font-work-sans font-bold text-sidebar-foreground">ResumeAI</span>
                 </motion.div>
               )}
             </AnimatePresence>
 
-            <button onClick={onToggle} className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
-              {isOpen ? <XMarkIcon className="h-5 w-5 text-gray-600" /> : <Bars3Icon className="h-5 w-5 text-gray-600" />}
+            <button onClick={onToggle} className="p-2 rounded-lg hover:bg-sidebar-accent transition-colors">
+              {isOpen ? (
+                <XMarkIcon className="h-5 w-5 text-sidebar-foreground" />
+              ) : (
+                <Bars3Icon className="h-5 w-5 text-sidebar-foreground" />
+              )}
             </button>
           </div>
         </div>
 
-        <nav className="flex-1 px-6">
+        <nav className="flex-1 px-4 py-6">
           <ul className="space-y-2">
             {navigation.map((item) => (
               <li key={item.name}>
                 <NavLink
                   to={item.href}
                   className={({ isActive }) =>
-                    `flex items-center px-3 py-3 rounded-lg text-sm font-medium transition-all duration-200 group ${
+                    `flex items-center px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 group ${
                       isActive
-                        ? "bg-indigo-100 text-indigo-700 shadow-md"
-                        : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                        ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-lg"
+                        : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                     }`
                   }
                 >
-                  <item.icon className="h-5 w-5 flex-shrink-0 text-gray-600 group-hover:text-indigo-700" />
+                  <item.icon className={`h-5 w-5 flex-shrink-0 transition-colors ${isOpen ? "mr-3" : "mx-auto"}`} />
                   <AnimatePresence>
                     {isOpen && (
                       <motion.span
@@ -145,7 +154,7 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
                         initial="closed"
                         animate="open"
                         exit="closed"
-                        className="ml-3"
+                        className="truncate"
                       >
                         {item.name}
                       </motion.span>
@@ -157,15 +166,27 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
           </ul>
         </nav>
 
-        <div className="p-6">
+        <div className="p-4 border-t border-sidebar-border space-y-2">
+          {/* Theme Toggle */}
+          <AnimatePresence>
+            {isOpen && (
+              <motion.div variants={itemVariants} initial="closed" animate="open" exit="closed">
+                <ThemeToggle />
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Logout Button */}
           <button
             onClick={handleLogout}
-            className="flex items-center w-full px-3 py-3 rounded-lg text-sm font-medium text-gray-600 hover:bg-red-100 hover:text-red-700 transition-all duration-200"
+            className="flex items-center w-full px-3 py-3 rounded-xl text-sm font-medium text-sidebar-foreground hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-all duration-200"
           >
-            <ArrowRightOnRectangleIcon className="h-5 w-5 flex-shrink-0 text-gray-600 group-hover:text-red-700" />
+            <ArrowRightOnRectangleIcon
+              className={`h-5 w-5 flex-shrink-0 transition-colors ${isOpen ? "mr-3" : "mx-auto"}`}
+            />
             <AnimatePresence>
               {isOpen && (
-                <motion.span variants={itemVariants} initial="closed" animate="open" exit="closed" className="ml-3">
+                <motion.span variants={itemVariants} initial="closed" animate="open" exit="closed">
                   Logout
                 </motion.span>
               )}
@@ -174,7 +195,6 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
         </div>
       </motion.div>
 
-      {/* Mobile Sidebar */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
@@ -182,13 +202,18 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
             animate={{ x: 0 }}
             exit={{ x: "-100%" }}
             transition={{ type: "tween", duration: 0.3 }}
-            className="lg:hidden fixed left-0 top-0 w-64 h-screen bg-white shadow-md z-50 flex flex-col"
+            className="lg:hidden fixed left-0 top-0 w-64 h-screen bg-sidebar-background shadow-xl border-r border-sidebar-border z-50 flex flex-col"
           >
-            <div className="p-6">
+            <div className="p-6 border-b border-sidebar-border">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-gradient-to-r from-indigo-600 to-purple-700 rounded-lg flex items-center justify-center shadow-md">
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-8 h-8 bg-gradient-to-r from-primary to-primary-light rounded-lg flex items-center justify-center shadow-lg">
+                    <svg
+                      className="w-4 h-4 text-primary-foreground"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -197,19 +222,19 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
                       />
                     </svg>
                   </div>
-                  <span className="font-bold text-gray-900">ResumeAI</span>
+                  <span className="font-work-sans font-bold text-sidebar-foreground">ResumeAI</span>
                 </div>
 
                 <button
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                  className="p-2 rounded-lg hover:bg-sidebar-accent transition-colors"
                 >
-                  <XMarkIcon className="h-5 w-5 text-gray-600" />
+                  <XMarkIcon className="h-5 w-5 text-sidebar-foreground" />
                 </button>
               </div>
             </div>
 
-            <nav className="flex-1 px-6">
+            <nav className="flex-1 px-4 py-6">
               <ul className="space-y-2">
                 {navigation.map((item) => (
                   <li key={item.name}>
@@ -217,28 +242,29 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
                       to={item.href}
                       onClick={() => setIsMobileMenuOpen(false)}
                       className={({ isActive }) =>
-                        `flex items-center px-3 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                        `flex items-center px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
                           isActive
-                            ? "bg-indigo-100 text-indigo-700 shadow-md"
-                            : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                            ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-lg"
+                            : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                         }`
                       }
                     >
-                      <item.icon className="h-5 w-5 flex-shrink-0 text-gray-600" />
-                      <span className="ml-3">{item.name}</span>
+                      <item.icon className="h-5 w-5 flex-shrink-0 mr-3" />
+                      <span>{item.name}</span>
                     </NavLink>
                   </li>
                 ))}
               </ul>
             </nav>
 
-            <div className="p-6">
+            <div className="p-4 border-t border-sidebar-border space-y-2">
+              <ThemeToggle />
               <button
                 onClick={handleLogout}
-                className="flex items-center w-full px-3 py-3 rounded-lg text-sm font-medium text-gray-600 hover:bg-red-100 hover:text-red-700 transition-all duration-200"
+                className="flex items-center w-full px-3 py-3 rounded-xl text-sm font-medium text-sidebar-foreground hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-all duration-200"
               >
-                <ArrowRightOnRectangleIcon className="h-5 w-5 flex-shrink-0 text-gray-600" />
-                <span className="ml-3">Logout</span>
+                <ArrowRightOnRectangleIcon className="h-5 w-5 flex-shrink-0 mr-3" />
+                <span>Logout</span>
               </button>
             </div>
           </motion.div>

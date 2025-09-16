@@ -1,5 +1,6 @@
+// backend/services/growthPlannerService.js (complete corrected version with all functions defined)
 const { OpenAI } = require('openai');
-const UserRoadmap = require('../models/UserRoadmap'); // Using UserRoadmap instead of UserProgress
+const UserRoadmap = require('../models/UserRoadmap');
 
 const client = new OpenAI({
   baseURL: "https://router.huggingface.co/v1",
@@ -158,6 +159,7 @@ async function analyzeGrowth(req, res) {
           streak: 0,
           milestonesCompleted: [],
           skillsCompleted: [],
+          quizzes: [], // Initialize empty quizzes
         },
       });
     }
@@ -180,7 +182,7 @@ async function analyzeGrowth(req, res) {
     const gapCompletion = await client.chat.completions.create({
       model: "openai/gpt-oss-20b:together",
       messages: [{ role: "user", content: gapPrompt }],
-      max_tokens: 1000,
+      max_tokens: 3000,
       temperature: 0.7,
     });
 
@@ -223,17 +225,16 @@ async function analyzeGrowth(req, res) {
         const growthCompletion = await client.chat.completions.create({
           model: "openai/gpt-oss-20b:together",
           messages: [{ role: "user", content: growthPrompt }],
-          max_tokens: 1500,
+          max_tokens: 2500,
           temperature: 0.7,
         });
 
         const growthResponseText = growthCompletion.choices[0].message.content;
         console.log('Raw growth response:', growthResponseText);
-        const cleanedGrowthResponse = cleanResponse(growthResponseText);
-        if (!cleanedGrowthResponse) {
+        growthResult = cleanResponse(growthResponseText);
+        if (!growthResult) {
           throw new Error('Failed to extract valid JSON from growth response');
         }
-        growthResult = cleanedGrowthResponse;
         if (!Array.isArray(growthResult.plans)) {
           throw new Error('Invalid growth path response structure');
         }
@@ -293,6 +294,7 @@ async function updateProgress(req, res) {
           streak: 0,
           milestonesCompleted: [],
           skillsCompleted: [],
+          quizzes: [],
         },
       });
     }
@@ -312,7 +314,7 @@ async function updateProgress(req, res) {
     }
 
     const now = new Date();
-    const last = new Date(userRoadmap.progress.lastActivity);
+    const last = new Date(userRoadmap.progress.lastActivity || now);
     const isSameDay = now.toDateString() === last.toDateString();
     const isYesterday = new Date(now.setDate(now.getDate() - 1)).toDateString() === last.toDateString();
     if (!isSameDay && isYesterday) {
@@ -321,7 +323,7 @@ async function updateProgress(req, res) {
     } else if (!isSameDay && !isYesterday) {
       userRoadmap.progress.streak = 1;
     }
-    userRoadmap.progress.lastActivity = new Date();
+    userRoadmap.progress.lastActivity = now;
 
     userRoadmap.progress.level = calculateLevel(userRoadmap.progress.points);
     await userRoadmap.save();
@@ -370,7 +372,7 @@ async function generateQuiz(req, res) {
     const quizCompletion = await client.chat.completions.create({
       model: "openai/gpt-oss-20b:together",
       messages: [{ role: "user", content: quizPrompt }],
-      max_tokens: 500,
+      max_tokens: 1500,
       temperature: 0.7,
     });
 
@@ -419,9 +421,64 @@ async function saveRoadmap(req, res) {
         streak: 0,
         milestonesCompleted: [],
         skillsCompleted: [],
+        quizzes: [] // Initialize empty quizzes
       },
     });
     await newRoadmap.save();
+
+    // Pre-generate quizzes only if SKIP_QUIZ_GENERATION is false
+    const skipQuizzes = process.env.SKIP_QUIZ_GENERATION === 'true';
+    if (!skipQuizzes) {
+      const quizzes = [];
+      for (const plan of newRoadmap.growth.plans) {
+        for (const milestone of plan.milestones) {
+          try {
+            const quizPrompt = `
+              You are an AI quiz generator for career development. Generate a 3-question quiz for the skill "${plan.skill}" and milestone "${milestone.title}" relevant to the role of "${newRoadmap.role}".
+
+              Output in JSON format only, with no additional text, markdown, or code fences:
+              {
+                "questions": [
+                  {
+                    "question": string,
+                    "options": [string, string, string, string],
+                    "answer": string
+                  }
+                ]
+              }
+
+              Ensure each question has exactly 4 options, one correct answer (matching one of the options exactly), and is directly related to the milestone. Ensure JSON is valid and complete.
+            `;
+
+            const quizCompletion = await client.chat.completions.create({
+              model: "mixtral-8x7b-32768",  // Groq model
+              messages: [{ role: "user", content: quizPrompt }],
+              max_tokens: 500,
+              temperature: 0.7,
+            });
+
+            const quizResponseText = quizCompletion.choices[0].message.content;
+            console.log('Raw quiz response for ' + plan.skill + ' - ' + milestone.title + ':', quizResponseText);
+            const quizResult = cleanResponse(quizResponseText);
+            if (!quizResult) {
+              throw new Error('Failed to extract valid JSON from quiz response for ' + plan.skill + ' - ' + milestone.title);
+            }
+
+            quizzes.push({
+              skill: plan.skill,
+              milestoneId: milestone.id,
+              questions: quizResult.questions
+            });
+          } catch (quizError) {
+            console.error('Error generating quiz for ' + plan.skill + ' - ' + milestone.title + ':', quizError);
+            // Continue without quiz
+          }
+        }
+      }
+
+      newRoadmap.progress.quizzes = quizzes;
+      await newRoadmap.save();
+    }
 
     res.json({ success: true, roadmap: newRoadmap });
   } catch (error) {
@@ -429,6 +486,34 @@ async function saveRoadmap(req, res) {
     res.status(500).json({ success: false, message: 'Failed to save roadmap' });
   }
 }
+
+// backend/services/growthPlannerService.js (add this function at the bottom)
+async function deleteRoadmap(req, res) {
+  const { id } = req.params;
+  const userId = req.user?.id;
+
+  console.log('Delete roadmap request for id:', id, 'userId:', userId);
+
+  if (!userId) {
+    return res.status(400).json({ success: false, message: 'User ID required' });
+  }
+
+  try {
+    const roadmap = await UserRoadmap.findOne({ _id: id, userId });
+    if (!roadmap) {
+      return res.status(404).json({ success: false, message: 'Roadmap not found or unauthorized' });
+    }
+
+    await UserRoadmap.deleteOne({ _id: id, userId });
+    res.json({ success: true, message: 'Roadmap deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting roadmap:', error);
+    res.status(500).json({ success: false, message: 'Failed to delete roadmap' });
+  }
+}
+
+
+
 
 async function getUserRoadmaps(req, res) {
   const userId = req.user?.id;
@@ -445,10 +530,6 @@ async function getUserRoadmaps(req, res) {
     res.status(500).json({ success: false, message: 'Failed to fetch roadmaps' });
   }
 }
-
-
-
-// ... (previous imports and functions remain the same)
 
 async function getRoadmapById(req, res) {
   const { id } = req.params;
@@ -472,15 +553,7 @@ async function getRoadmapById(req, res) {
   }
 }
 
-
-
-module.exports = { analyzeGrowth, updateProgress, generateQuiz, saveRoadmap, getUserRoadmaps, getRoadmapById };
-
-
-
-
-
-
+module.exports = { analyzeGrowth, updateProgress, generateQuiz, saveRoadmap, getUserRoadmaps, getRoadmapById, deleteRoadmap};
 
 
 

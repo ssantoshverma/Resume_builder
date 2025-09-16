@@ -1,0 +1,245 @@
+@import url("https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700;800&family=Open+Sans:wght@300;400;500;600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Modern Resume Builder Design System */
+
+@layer base {
+  :root {
+    /* Core Background & Surface Colors */
+    --background: 0 0% 100%;
+    --surface: 220 13% 97%;
+    --surface-elevated: 0 0% 100%;
+    --foreground: 215 25% 27%;
+
+    /* Glassmorphism & Overlays */
+    --glass: 0 0% 100% / 0.8;
+    --glass-border: 220 13% 91% / 0.3;
+    --overlay: 215 25% 27% / 0.4;
+
+    /* Brand Primary - Professional Emerald */
+    --primary: 160 84% 39%;
+    --primary-light: 160 84% 49%;
+    --primary-dark: 160 84% 29%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary - Soft Gray */
+    --secondary: 220 13% 95%;
+    --secondary-hover: 220 13% 93%;
+    --secondary-foreground: 215 25% 27%;
+
+    /* Neutral Grays */
+    --muted: 220 13% 95%;
+    --muted-hover: 220 13% 93%;
+    --muted-foreground: 215 16% 47%;
+
+    /* Interactive States */
+    --accent: 160 84% 49%;
+    --accent-light: 160 84% 95%;
+    --accent-foreground: 0 0% 100%;
+
+    /* Status Colors */
+    --success: 160 84% 39%;
+    --success-light: 160 84% 95%;
+    --warning: 25 95% 53%;
+    --warning-light: 25 95% 95%;
+    --destructive: 0 84% 60%;
+    --destructive-light: 0 84% 95%;
+
+    /* Borders & Inputs */
+    --border: 220 13% 91%;
+    --border-hover: 220 13% 85%;
+    --input: 220 13% 95%;
+    --input-focus: 160 84% 39%;
+    --ring: 160 84% 39%;
+
+    /* Card & Popover */
+    --card: 0 0% 100%;
+    --card-foreground: 215 25% 27%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 25% 27%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Sidebar Colors */
+    --sidebar-background: 220 13% 97%;
+    --sidebar-foreground: 215 25% 27%;
+    --sidebar-primary: 160 84% 39%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 13% 95%;
+    --sidebar-accent-foreground: 215 25% 27%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 160 84% 39%;
+
+    /* Spacing & Typography */
+    --radius: 0.75rem;
+    --radius-lg: 1rem;
+    --radius-xl: 1.5rem;
+
+    /* Chart Colors */
+    --chart-1: 160 84% 39%;
+    --chart-2: 160 84% 49%;
+    --chart-3: 25 95% 53%;
+    --chart-4: 215 25% 27%;
+    --chart-5: 215 16% 47%;
+  }
+
+  .dark {
+    /* Dark Mode Colors */
+    --background: 222 84% 5%;
+    --surface: 215 28% 8%;
+    --surface-elevated: 215 28% 10%;
+    --foreground: 210 40% 98%;
+
+    /* Glassmorphism & Overlays */
+    --glass: 215 28% 8% / 0.8;
+    --glass-border: 215 28% 17% / 0.3;
+    --overlay: 210 40% 98% / 0.4;
+
+    /* Brand Primary - Emerald for Dark */
+    --primary: 160 84% 49%;
+    --primary-light: 160 84% 59%;
+    --primary-dark: 160 84% 39%;
+    --primary-foreground: 215 28% 8%;
+
+    /* Secondary - Dark Gray */
+    --secondary: 215 28% 17%;
+    --secondary-hover: 215 28% 20%;
+    --secondary-foreground: 210 40% 98%;
+
+    /* Neutral Grays */
+    --muted: 215 28% 17%;
+    --muted-hover: 215 28% 20%;
+    --muted-foreground: 215 20% 65%;
+
+    /* Interactive States */
+    --accent: 160 84% 49%;
+    --accent-light: 160 84% 15%;
+    --accent-foreground: 210 40% 98%;
+
+    /* Status Colors */
+    --success: 160 84% 49%;
+    --success-light: 160 84% 15%;
+    --warning: 25 95% 53%;
+    --warning-light: 25 95% 15%;
+    --destructive: 0 62% 51%;
+    --destructive-light: 0 62% 15%;
+
+    /* Borders & Inputs */
+    --border: 215 28% 17%;
+    --border-hover: 215 28% 25%;
+    --input: 215 28% 17%;
+    --input-focus: 160 84% 49%;
+    --ring: 160 84% 49%;
+
+    /* Card & Popover */
+    --card: 215 28% 8%;
+    --card-foreground: 210 40% 98%;
+    --popover: 215 28% 8%;
+    --popover-foreground: 210 40% 98%;
+    --destructive-foreground: 210 40% 98%;
+
+    /* Sidebar Colors */
+    --sidebar-background: 215 28% 8%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 160 84% 49%;
+    --sidebar-primary-foreground: 215 28% 8%;
+    --sidebar-accent: 215 28% 17%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 215 28% 17%;
+    --sidebar-ring: 160 84% 49%;
+
+    /* Chart Colors */
+    --chart-1: 160 84% 49%;
+    --chart-2: 160 84% 59%;
+    --chart-3: 25 95% 53%;
+    --chart-4: 210 40% 98%;
+    --chart-5: 215 20% 65%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-open-sans antialiased text-foreground;
+    background: hsl(var(--background));
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-work-sans font-semibold;
+  }
+}
+
+@layer components {
+  /* Glassmorphism Components */
+  .glass {
+    @apply backdrop-blur-md border border-white/20;
+    background: linear-gradient(135deg, hsl(var(--surface) / 0.9), hsl(var(--surface) / 0.7));
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  }
+
+  .glass-panel {
+    @apply glass rounded-xl p-6;
+  }
+
+  .glass-card {
+    @apply glass rounded-lg p-4;
+  }
+
+  /* Enhanced Buttons */
+  .btn-primary {
+    @apply text-primary-foreground px-6 py-3 rounded-xl font-medium transition-all duration-200;
+    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-dark)));
+    box-shadow: 0 4px 15px 0 hsl(var(--primary) / 0.3);
+  }
+
+  .btn-primary:hover {
+    @apply transform -translate-y-0.5;
+    box-shadow: 0 8px 25px 0 hsl(var(--primary) / 0.4);
+  }
+
+  .btn-glass {
+    @apply glass px-6 py-3 rounded-xl font-medium transition-all duration-200 hover:bg-white/30;
+  }
+
+  /* Enhanced Inputs */
+  .input-glass {
+    @apply glass px-4 py-3 rounded-lg border-white/20 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200;
+  }
+
+  /* Animations */
+  .animate-glow {
+    animation: glow 2s ease-in-out infinite alternate;
+  }
+
+  @keyframes glow {
+    from {
+      box-shadow: 0 4px 15px 0 hsl(var(--primary) / 0.3);
+    }
+    to {
+      box-shadow: 0 8px 25px 0 hsl(var(--primary) / 0.5);
+    }
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+}

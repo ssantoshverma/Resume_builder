@@ -1,13 +1,21 @@
 const express = require('express');
-const { analyzeGrowth, updateProgress, generateQuiz, saveRoadmap, getUserRoadmaps, getRoadmapById } = require('../services/growthPlannerService');
-
 const router = express.Router();
+const growthPlannerService = require('../services/growthPlannerService');
+const { protect } = require('../middleware/auth'); // Use destructuring for protect
 
-router.post('/analyze', analyzeGrowth);
-router.post('/update-progress', updateProgress);
-router.post('/generate-quiz', generateQuiz);
-router.post('/save-roadmap', saveRoadmap);
-router.get('/user-roadmaps', getUserRoadmaps);
-router.get('/roadmaps/:id', getRoadmapById); // New endpoint for roadmap details
+// Validate service functions are loaded
+if (!growthPlannerService.analyzeGrowth || typeof growthPlannerService.analyzeGrowth !== 'function') {
+  console.error('Error: analyzeGrowth is not a function. Check growthPlannerService.js');
+  process.exit(1); // Exit if invalid
+}
+
+// Existing routes (standardized names)
+router.post('/analyze', protect, growthPlannerService.analyzeGrowth);
+router.post('/update-progress', protect, growthPlannerService.updateProgress);
+router.post('/generate-quiz', protect, growthPlannerService.generateQuiz);
+router.post('/save-roadmap', protect, growthPlannerService.saveRoadmap);
+router.get('/user-roadmaps', protect, growthPlannerService.getUserRoadmaps);
+router.get('/roadmaps/:id', protect, growthPlannerService.getRoadmapById);
+router.delete('/roadmaps/:id', protect, growthPlannerService.deleteRoadmap);
 
 module.exports = router;

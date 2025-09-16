@@ -1,4 +1,4 @@
-// src/pages/Progress.tsx (new file for Progress page)
+// src/pages/Progress.tsx (updated with delete button and Tailwind CSS)
 import React, { useState, useEffect } from "react";
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
@@ -42,6 +42,32 @@ export default function Progress() {
     fetchRoadmaps();
   }, []);
 
+  const handleDeleteRoadmap = async (id: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setError("Please log in to continue");
+        return;
+      }
+
+      const res = await fetch(`http://localhost:5000/api/growth-planner/roadmaps/${id}`, {
+        method: "DELETE",
+        headers: { 
+          "Authorization": `Bearer ${token}`
+        },
+      });
+
+      const json = await res.json();
+      if (json.success) {
+        setRoadmaps(roadmaps.filter((rm: any) => rm._id !== id));
+      } else {
+        setError(json.message || "Failed to delete roadmap");
+      }
+    } catch (e: any) {
+      setError(e.message || "Failed to delete roadmap");
+    }
+  };
+
   const calculateProgress = (roadmap: any) => {
     const totalMilestones = roadmap.growth.plans.reduce((acc: number, plan: any) => acc + plan.milestones.length, 0);
     const completedMilestones = roadmap.progress.milestonesCompleted.length;
@@ -61,10 +87,16 @@ export default function Progress() {
           {roadmaps.map((roadmap: any) => (
             <motion.div 
               key={roadmap._id}
-              className="bg-white rounded-xl shadow-md p-6"
+              className="bg-white rounded-xl shadow-md p-6 relative"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
             >
+              <button
+                onClick={() => handleDeleteRoadmap(roadmap._id)}
+                className="absolute top-2 right-2 text-red-500 hover:text-red-700 text-sm"
+              >
+                Delete
+              </button>
               <h2 className="text-xl font-semibold text-gray-900 mb-4">{roadmap.title}</h2>
               <div className="flex justify-center mb-4">
                 <div style={{ width: 100, height: 100 }}>

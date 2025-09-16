@@ -1,6 +1,7 @@
 "use client"
 
-import React, { useEffect, useRef, useState } from "react"
+import type React from "react"
+import { useEffect, useRef, useState } from "react"
 import { motion } from "framer-motion"
 import { PlusIcon, TrashIcon, CheckIcon } from "@heroicons/react/24/outline"
 import AppLayout from "../layouts/AppLayout"
@@ -54,9 +55,7 @@ const Profile: React.FC = () => {
     profilePhoto: "",
   })
 
-  const [education, setEducation] = useState<Education[]>([
-    { id: "1", degree: "", institution: "", year: "" },
-  ])
+  const [education, setEducation] = useState<Education[]>([{ id: "1", degree: "", institution: "", year: "" }])
   const [experience, setExperience] = useState<Experience[]>([
     { id: "1", title: "", company: "", duration: "", description: "" },
   ])
@@ -142,9 +141,7 @@ const Profile: React.FC = () => {
     }
   }
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name as keyof ProfileFormState]: value }))
   }
@@ -168,7 +165,10 @@ const Profile: React.FC = () => {
     setEducation((prev) => prev.map((e) => (e.id === id ? { ...e, [field]: value } : e)))
 
   const addExperience = () =>
-    setExperience((prev) => [...prev, { id: Date.now().toString(), title: "", company: "", duration: "", description: "" }])
+    setExperience((prev) => [
+      ...prev,
+      { id: Date.now().toString(), title: "", company: "", duration: "", description: "" },
+    ])
 
   const removeExperience = (id: string) => setExperience((prev) => prev.filter((e) => e.id !== id))
 
@@ -190,16 +190,18 @@ const Profile: React.FC = () => {
         fd.append("linkedin", formData.linkedin)
         fd.append("github", formData.github)
         fd.append("website", formData.portfolio)
-        const skillsArr = formData.skills.split(",").map((s) => s.trim()).filter(Boolean)
+        const skillsArr = formData.skills
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean)
         skillsArr.forEach((skill) => {
-  fd.append("skills[]", skill);
-});
-fd.append("profilePhoto", file);
-
-        
+          fd.append("skills[]", skill)
+        })
         fd.append("profilePhoto", file)
 
-        resp = (await (authService as any).updateProfile(fd, { headers: { "Content-Type": "multipart/form-data" } })) as {
+        resp = (await (authService as any).updateProfile(fd, {
+          headers: { "Content-Type": "multipart/form-data" },
+        })) as {
           success: boolean
           data?: any
           message?: string
@@ -212,7 +214,10 @@ fd.append("profilePhoto", file);
           linkedin: formData.linkedin,
           github: formData.github,
           website: formData.portfolio,
-          skills: formData.skills.split(",").map((s) => s.trim()).filter(Boolean),
+          skills: formData.skills
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean),
         }
         resp = (await (authService as any).updateProfile(payload)) as {
           success: boolean
@@ -302,12 +307,16 @@ fd.append("profilePhoto", file);
             aria-label="Upload profile photo"
             role="button"
             tabIndex={0}
-            onKeyDown={(e) => e.key === 'Enter' && handleCircleClick()}
+            onKeyDown={(e) => e.key === "Enter" && handleCircleClick()}
           >
             {preview ? (
-              <img src={preview} alt="Preview" className="object-cover w-full h-full" />
+              <img src={preview || "/placeholder.svg"} alt="Preview" className="object-cover w-full h-full" />
             ) : formData.profilePhoto ? (
-              <img src={formData.profilePhoto} alt="Profile" className="object-cover w-full h-full" />
+              <img
+                src={formData.profilePhoto || "/placeholder.svg"}
+                alt="Profile"
+                className="object-cover w-full h-full"
+              />
             ) : (
               <span className="text-3xl font-extrabold text-gray-400 select-none">{avatarInitials()}</span>
             )}
@@ -324,13 +333,7 @@ fd.append("profilePhoto", file);
             <p className="text-muted-foreground">{formData.email || "Add your email"}</p>
           </div>
 
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handleFileChange}
-          />
+          <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
         </motion.div>
 
         {/* Basic Information */}
@@ -344,15 +347,12 @@ fd.append("profilePhoto", file);
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {["firstName", "lastName", "email", "phone"].map((field) => (
               <div key={field}>
-                <label
-                  htmlFor={field}
-                  className="block text-sm font-medium text-foreground mb-1"
-                >
+                <label htmlFor={field} className="block text-sm font-medium text-foreground mb-1">
                   {field === "firstName"
                     ? "First Name"
                     : field === "lastName"
-                    ? "Last Name"
-                    : field.charAt(0).toUpperCase() + field.slice(1)}
+                      ? "Last Name"
+                      : field.charAt(0).toUpperCase() + field.slice(1)}
                 </label>
                 <input
                   type={field === "email" ? "email" : "text"}
@@ -361,7 +361,7 @@ fd.append("profilePhoto", file);
                   value={formData[field as keyof ProfileFormState]}
                   onChange={handleInputChange}
                   className="input-glass w-full"
-                  placeholder={`Enter your ${field.replace(/([A-Z])/g, ' $1').toLowerCase()}`}
+                  placeholder={`Enter your ${field.replace(/([A-Z])/g, " $1").toLowerCase()}`}
                   autoComplete="off"
                 />
               </div>
@@ -384,10 +384,7 @@ fd.append("profilePhoto", file);
               { name: "portfolio", label: "Portfolio" },
             ].map(({ name, label }) => (
               <div key={name}>
-                <label
-                  htmlFor={name}
-                  className="block text-sm font-medium text-foreground mb-1"
-                >
+                <label htmlFor={name} className="block text-sm font-medium text-foreground mb-1">
                   {label}
                 </label>
                 <input
@@ -464,7 +461,7 @@ fd.append("profilePhoto", file);
         <motion.section
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.30 }}
+          transition={{ delay: 0.3 }}
           className="bg-white bg-opacity-30 backdrop-blur-md shadow-lg rounded-2xl p-6"
         >
           <div className="flex items-center justify-between mb-6">
@@ -557,7 +554,7 @@ fd.append("profilePhoto", file);
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.40 }}
+          transition={{ delay: 0.4 }}
           className="flex justify-center"
         >
           <button
